@@ -23,7 +23,7 @@ import sys
 import time
 from jsonrpc import ServiceProxy, json
 
-BASE_FEE=Decimal("0.001")
+BASE_FEE=float("0.001")
 
 def check_json_precision():
     """Make sure json library being used does not lose precision converting BTC values"""
@@ -100,7 +100,8 @@ def list_available(bitcoind):
     address_summary = dict()
 
     address_to_account = dict()
-    for info in bitcoind.listreceivedbyaddress(0):
+
+    for info in bitcoind.listreceivedbyaddress(0, True):
         address_to_account[info["address"]] = info["account"]
 
     unspent = bitcoind.listunspent(0)
@@ -131,7 +132,7 @@ def list_available(bitcoind):
 def select_coins(needed, inputs):
     # Feel free to improve this, this is good enough for my simple needs:
     outputs = []
-    have = Decimal("0.0")
+    have = float("0.0")
     n = 0
     while have < needed and n < len(inputs):
         outputs.append({ "txid":inputs[n]["txid"], "vout":inputs[n]["vout"]})
@@ -142,7 +143,7 @@ def select_coins(needed, inputs):
 def create_tx(bitcoind, fromaddresses, toaddress, amount, fee):
     all_coins = list_available(bitcoind)
 
-    total_available = Decimal("0.0")
+    total_available = float("0.0")
     needed = amount+fee
     potential_inputs = []
     for addr in fromaddresses:
@@ -180,7 +181,7 @@ def create_tx(bitcoind, fromaddresses, toaddress, amount, fee):
     return txdata
 
 def compute_amount_in(bitcoind, txinfo):
-    result = Decimal("0.0")
+    result = float("0.0")
     for vin in txinfo['vin']:
         in_info = bitcoind.getrawtransaction(vin['txid'], 1)
         vout = in_info['vout'][vin['vout']]
@@ -188,7 +189,7 @@ def compute_amount_in(bitcoind, txinfo):
     return result
 
 def compute_amount_out(txinfo):
-    result = Decimal("0.0")
+    result = float("0.0")
     for vout in txinfo['vout']:
         result = result + vout['value']
     return result
@@ -237,7 +238,7 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    check_json_precision()
+    # check_json_precision()
     config = read_bitcoin_config(options.datadir)
     if options.testnet: config['testnet'] = True
     bitcoind = connect_JSON(config)
@@ -251,12 +252,12 @@ def main():
             else:
                 print("%s %.8f %s"%(address, info['total'], info['account']))
     else:
-        fee = Decimal(options.fee)
-        amount = Decimal(options.amount)
+        fee = float(options.fee)
+        amount = float(options.amount)
         while unlock_wallet(bitcoind) == False:
             pass # Keep asking for passphrase until they get it right
         txdata = create_tx(bitcoind, options.fromaddresses.split(","), options.to, amount, fee)
-        sanity_test_fee(bitcoind, txdata, amount*Decimal("0.01"))
+        sanity_test_fee(bitcoind, txdata, amount*float("0.01"))
         if options.dry_run:
             print(txdata)
         else:
