@@ -252,17 +252,19 @@ def main():
             else:
                 print("%s %.8f %s"%(address, info['total'], info['account']))
     else:
-        fee = float(options.fee)
-        amount = float(options.amount)
-        while unlock_wallet(bitcoind) == False:
-            pass # Keep asking for passphrase until they get it right
-        txdata = create_tx(bitcoind, options.fromaddresses.split(","), options.to, amount, fee)
-        sanity_test_fee(bitcoind, txdata, amount*float("0.01"))
-        if options.dry_run:
-            print(txdata)
-        else:
-            txid = bitcoind.sendrawtransaction(txdata)
-            print(txid)
+        foo=raw_input('Please enter the HELL FUCKING YES:')
+        if foo == "YES":
+            fee = float(options.fee)
+            amount = float(options.amount)
+            while unlock_wallet(bitcoind) == False:
+                pass # Keep asking for passphrase until they get it right
+            txdata = create_tx(bitcoind, options.fromaddresses.split(","), options.to, amount, fee)
+            # sanity_test_fee(bitcoind, txdata, amount*float("0.01"))
+            if options.dry_run:
+                print(txdata)
+            else:
+                txid = bitcoind.sendrawtransaction(txdata)
+                print(txid)
 
 if __name__ == '__main__':
     main()
